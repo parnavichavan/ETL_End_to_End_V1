@@ -1,0 +1,108 @@
+name: ETL Pipeline
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Create directories
+        run: |
+          mkdir -p data/raw
+          mkdir -p data/gold
+          mkdir -p logs
+
+      - name: Upload artifacts (initial dirs)
+        uses: actions/upload-artifact@v3
+        with:
+          name: etl-dirs
+          path: |
+            data/
+            logs/
+
+  collect:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download setup artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: etl-dirs
+          path: .
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Collect Script
+        run: python src/collect/collect_data.py
+
+      - name: Upload collected data
+        uses: actions/upload-artifact@v3
+        with:
+          name: collected-data
+          path: data/raw/
+
+  transform:
+    runs-on: ubuntu-latest
+    needs: collect
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download collected data
+        uses: actions/download-artifact@v3
+        with:
+          name: collected-data
+          path: data/raw/
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Transform Script
+        run: python src/transform/transform_data.py
+
+      - name: Upload transformed data
+        uses: actions/upload-artifact@v3
+        with:
+          name: transformed-data
+          path: data/gold/
+
+  ingest:
+    runs-on: ubuntu-latest
+    needs: transform
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Download transformed data
+        uses: actions/download-artifact@v3
+        with:
+          name: transformed-data
+          path: data/gold/
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Ingest Script
+        run: python src/ingest/ingest_data.py
