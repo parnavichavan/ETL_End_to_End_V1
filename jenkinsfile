@@ -1,0 +1,30 @@
+pipeline {
+    agent any
+    stages {
+        stage('Clone Code') {
+            steps {
+                git 'https://github.com/username/etl-project.git'
+            }
+        }
+        stage('Install Libraries') {
+            steps {
+                sh 'pip install -r requirements.txt'
+            }
+        }
+        stage('Collect Data') {
+            steps {
+                sh 'collect_data.py'
+            }
+        }
+        stage('Transform Data') {
+            steps {
+                sh 'transform_data.py'
+            }
+        }
+        stage('Ingest Data') {
+            steps {
+                sh 'ingest_data.py'
+            }
+        }
+    }
+}
