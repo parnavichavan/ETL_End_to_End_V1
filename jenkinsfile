@@ -1,5 +1,10 @@
 pipeline {
     agent any
+    environment {
+        // These should be bound to Jenkins credentials securely
+        KAGGLE_USERNAME = credentials('kaggle-username')
+        KAGGLE_KEY = credentials('kaggle-key')
+    }
     stages {
         stage('Clone Code') {
             steps {
@@ -8,22 +13,22 @@ pipeline {
         }
         stage('Install Libraries') {
             steps {
-                sh 'pip install -r requirements.txt'
+                bat 'pip install -r requirement.txt'
             }
         }
         stage('Collect Data') {
             steps {
-                sh 'collect_data.py'
+                bat 'python src\\collect\\collect_data.py'
             }
         }
         stage('Transform Data') {
             steps {
-                sh 'transform_data.py'
+                bat 'python src\\transform\\tranform_data.py'
             }
         }
         stage('Ingest Data') {
             steps {
-                sh 'ingest_data.py'
+                bat 'python ingest_data.py'
             }
         }
     }
