@@ -1,16 +1,9 @@
-import os, json
+import os
 from kaggle.api.kaggle_api_extended import KaggleApi
 
 def download_dataset(dataset_name, save_path):
-    # Load kaggle.json from config folder
-    with open("config/kaggle.json") as f:
-        creds = json.load(f)
-
-    os.environ["KAGGLE_USERNAME"] = creds["username"]
-    os.environ["KAGGLE_KEY"] = creds["key"]
-
     api = KaggleApi()
-    api.authenticate()
+    api.authenticate()   # This will now use KAGGLE_USERNAME and KAGGLE_KEY from Jenkins
 
     if not os.path.exists(save_path):
         os.makedirs(save_path)
